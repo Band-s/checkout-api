@@ -1,0 +1,37 @@
+import { test, before, after } from "node:test";
+import assert from "node:assert/strict";
+import type { Server } from "node:http";
+import type { AddressInfo } from "node:net";
+import { createApp } from "../src/app.js";
+
+let server: Server;
+let base: string;
+
+before(() => {
+  server = createApp().listen(0);
+  base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+});
+after(() => server.close());
+
+const preview = (body: unknown) =>
+  fetch(`${base}/api/receipts/preview`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+test("renders the default receipt", async () => {
+  const res = await preview({ order: { id: "ord_1", totalCents: 4250 } });
+  assert.equal(res.status, 200);
+  assert.deepEqual(await res.json(), { html: "Receipt for ord_1: $42.50" });
+});
+
+test("renders a merchant-customised receipt", async () => {
+  const res = await preview({ template: "Thanks! Order <%= order.id %>", order: { id: "ord_2", totalCents: 100 } });
+  assert.deepEqual(await res.json(), { html: "Thanks! Order ord_2" });
+});
+
+test("rejects a request without an order", async () => {
+  const res = await preview({});
+  assert.equal(res.status, 400);
+});
