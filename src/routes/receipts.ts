@@ -5,6 +5,36 @@ export const receiptsRouter = Router();
 
 const DEFAULT_RECEIPT = "Receipt for <%= order.id %>: <%= order.total %>";
 
+/** A plain JavaScript identifier: "r", "data", "_value". */
+const PLAIN_IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
+
+/**
+ * Rejects template source and options that must not reach `_.template`.
+ * `variable` must be a plain JavaScript identifier when present. An
+ * `imports` option, a non-string template, and non-object options are rejected.
+ */
+export function validateTemplate(tpl: unknown, options?: unknown): void {
+  if (typeof tpl !== "string") {
+    throw new TypeError("Invalid template passed into `_.template`");
+  }
+  if (options === undefined) {
+    return;
+  }
+  if (typeof options !== "object" || options === null || Array.isArray(options)) {
+    throw new TypeError("Invalid options passed into `_.template`");
+  }
+
+  const opts = options as Record<string, unknown>;
+  if (opts.imports !== undefined) {
+    throw new Error("Invalid `imports` option passed into `_.template`");
+  }
+  if (opts.variable !== undefined) {
+    if (typeof opts.variable !== "string" || !PLAIN_IDENTIFIER.test(opts.variable)) {
+      throw new Error("Invalid `variable` option passed into `_.template`");
+    }
+  }
+}
+
 /**
  * POST /api/receipts/preview
  * Lets merchants preview a customised receipt before saving it.
@@ -17,8 +47,16 @@ receiptsRouter.post("/preview", (req, res) => {
     res.status(400).json({ error: "order.id and order.totalCents are required" });
     return;
   }
+  const source = template ?? DEFAULT_RECEIPT;
+  try {
+    validateTemplate(source, options);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Invalid template";
+    res.status(400).json({ error: message });
+    return;
+  }
   const html = renderTemplate(
-    template ?? DEFAULT_RECEIPT,
+    source,
     { order: { id: order.id, total: formatCents(order.totalCents) } },
     options,
   );
