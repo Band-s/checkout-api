@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { formatCents, renderTemplate } from "shared-utils";
+import { validateTemplateInput } from "../validateTemplateInput.js";
 
 export const receiptsRouter = Router();
 
@@ -17,8 +18,16 @@ receiptsRouter.post("/preview", (req, res) => {
     res.status(400).json({ error: "order.id and order.totalCents are required" });
     return;
   }
+  const source = template ?? DEFAULT_RECEIPT;
+  try {
+    validateTemplateInput(source, options);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Invalid template input";
+    res.status(400).json({ error: message });
+    return;
+  }
   const html = renderTemplate(
-    template ?? DEFAULT_RECEIPT,
+    source,
     { order: { id: order.id, total: formatCents(order.totalCents) } },
     options,
   );
