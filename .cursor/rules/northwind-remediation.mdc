@@ -1,0 +1,17 @@
+---
+description: Northwind remediation conventions for bug fixes and security fixes
+alwaysApply: true
+---
+
+<!-- Guidance for agents, not a security boundary. Enforcement lives in branch protection, APPROVAL_POLICY.md review routing and the VulnFleet policy re-check. -->
+
+# Remediation conventions
+
+- Make the smallest change that fixes the issue. No refactors, renames or formatting churn.
+- Add a regression test in a new file under `test/` and confirm it fails on the unfixed code before you fix it.
+- Never edit, skip or delete existing tests.
+- No major version upgrades of any dependency without human approval. Every dependency change ships with its `package-lock.json` change.
+- Do not change `package.json` scripts.
+- Payment paths (`src/payments/**`) are protected: do not edit them without a named human approval on the issue or PR. See `src/payments/APPROVAL_POLICY.md`.
+- Tier 0, PCI: never log or echo card data, and answer bad input with a 400 and a clear message, never a 500.
+- Follow the `northwind-safe-fix` skill for the step-by-step procedure.
