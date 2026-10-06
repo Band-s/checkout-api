@@ -8,7 +8,8 @@ const DEFAULT_RECEIPT = "Receipt for <%= order.id %>: <%= order.total %>";
 /**
  * POST /api/receipts/preview
  * Lets merchants preview a customised receipt before saving it.
- * Body: { template?: string, order: { id, totalCents }, options?: object }
+ * Body: { template?: string, order: { id, totalCents, currency? }, options?: object }
+ * `order.currency` is the merchant's settlement currency (ISO 4217, default USD).
  * No authentication: used by the public merchant onboarding flow.
  */
 receiptsRouter.post("/preview", (req, res) => {
@@ -19,7 +20,7 @@ receiptsRouter.post("/preview", (req, res) => {
   }
   const html = renderTemplate(
     template ?? DEFAULT_RECEIPT,
-    { order: { id: order.id, total: formatCents(order.totalCents) } },
+    { order: { id: order.id, total: formatCents(order.totalCents, order.currency) } },
     options,
   );
   res.json({ html });

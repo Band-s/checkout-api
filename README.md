@@ -7,7 +7,8 @@
 
 Northwind Commerce checkout API. Tier 0, internet-facing, PCI scope.
 
-- `POST /api/receipts/preview`: preview a merchant-customised receipt.
+- `POST /api/receipts/preview`: preview a merchant-customised receipt. The
+  total is shown in `order.currency` (ISO 4217, default USD).
 
 ```bash
 npm install
