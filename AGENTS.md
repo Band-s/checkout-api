@@ -53,8 +53,28 @@ npm ci && npm test
 
 Before editing, run the verify command. If it fails, stop and report the failing command and output.
 
-- The environment's install step (`.cursor/environment.json`) already runs `npm ci`.
+- Builds run the default branch's install step (`.cursor/environment.json`), so
+  dependencies are already installed; the verify command's `npm ci` makes them
+  match this branch's lockfile.
 - `npm ci` needs network access to github.com to fetch shared-utils.
-- To reproduce an HTTP bug by hand: `npm start` in one terminal, then
-  `curl -s -X POST localhost:3000/api/receipts/preview -H 'content-type: application/json' -d '<body>'`.
-  Prefer a test that starts the app on port 0 (see `test/receipts.test.ts`).
+- Prefer a test that starts the app on port 0 (see `test/receipts.test.ts`).
+
+### Before/after evidence for an HTTP fix
+
+Run this once before you change `src/` and once after the fix, and paste both
+responses (status line and body) into the PR description:
+
+```bash
+node --import tsx src/server.ts > /tmp/checkout-api.log 2>&1 &
+SERVER_PID=$!
+for i in $(seq 1 40); do curl -s -o /dev/null localhost:3000/ && break; sleep 0.25; done
+curl -s -i -X POST localhost:3000/api/receipts/preview \
+  -H 'content-type: application/json' \
+  -d '{"order":{"id":"ord_2","totalCents":4250,"currency":null}}'
+kill $SERVER_PID
+```
+
+For the receipt currency bug: before the fix this returns `500` with an HTML stack
+trace; after it, `400` with a JSON `error` that names `order.currency`. An absent
+currency (no `currency` field) is not the bug: it defaults to USD and returns
+`200`. Show that it still does by sending `{"order":{"id":"ord_2","totalCents":4250}}`.
