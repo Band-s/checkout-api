@@ -1,5 +1,6 @@
 import express from "express";
 import { receiptsRouter } from "./routes/receipts.js";
+import { shippingRouter } from "./routes/shipping.js";
 
 export function createApp() {
   const app = express();
@@ -8,5 +9,6 @@ export function createApp() {
     res.json({ ok: true });
   });
   app.use("/api/receipts", receiptsRouter);
+  app.use("/api/shipping", shippingRouter);
   return app;
 }
