@@ -1,1 +1,5 @@
-{ "install": "npm install" }
+{
+  "name": "checkout-api",
+  "install": "npm ci",
+  "start": "if curl -sf \"http://127.0.0.1:${PORT:-3000}/healthz\" >/dev/null; then\n  echo \"checkout-api already listening on ${PORT:-3000}\"\n  exit 0\nfi\nexec npm start"
+}
