@@ -18,6 +18,10 @@ receiptsRouter.post("/preview", (req, res) => {
     res.status(400).json({ error: "order.id and order.totalCents are required" });
     return;
   }
+  if (order.currency !== undefined && (typeof order.currency !== "string" || !/^[A-Za-z]{3}$/.test(order.currency))) {
+    res.status(400).json({ error: "order.currency must be a 3-letter ISO 4217 code" });
+    return;
+  }
   const html = renderTemplate(
     template ?? DEFAULT_RECEIPT,
     { order: { id: order.id, total: formatCents(order.totalCents, order.currency) } },
