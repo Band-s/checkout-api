@@ -23,7 +23,7 @@ It matches the `src/payments/**` protected path in VulnFleet's `policy.yaml`.
 | Role | GitHub login |
 |---|---|
 | Payments owner (payments-team) | @Band-s |
-| Second reviewer, PCI security | @REPLACE-WITH-SECOND-REVIEWER <!-- TODO before the demo: a real GitHub login with access to this repo --> |
+| Second reviewer, PCI security | @shacharband |
 
 ## What reviewers check
 
